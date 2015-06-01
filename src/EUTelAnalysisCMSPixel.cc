@@ -547,8 +547,8 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
     px.roc = 8;
 
     if(hanging) {
-      px.col = 52 - pixel->getXCoord();
-      px.row = 80 - pixel->getYCoord();
+      px.col = 51 - pixel->getXCoord();
+      px.row = 79 - pixel->getYCoord();
     }
     else {
       px.col = pixel->getXCoord();
@@ -5762,6 +5762,12 @@ bool EUTelAnalysisCMSPixel::CalibratePixels(std::vector<CMSPixel::pixel> * pixel
       (*pix).vcal = (TMath::ATanH(((*pix).raw - cal.fitParameter[3][col][row])/cal.fitParameter[2][col][row])
 		     + cal.fitParameter[1][col][row])/cal.fitParameter[0][col][row] *65E-3; // 65e/VcalDAC
     }
+
+    // PSI Erf Calibration:
+    else if(strcmp(cal.type.c_str(),"psi_erf") == 0) {
+      (*pix).vcal = (cal.fitParameter[0][col][row] + cal.fitParameter[1][col][row] * TMath::ErfInverse((*pix).raw / cal.fitParameter[3][col][row] - cal.fitParameter[2][col][row] )) * 50E-3; // 50/VcalDAC										       
+    }
+
     // Weibull Calibration:
     else if(strcmp(cal.type.c_str(),"desy_weibull") == 0) {
       (*pix).vcal = (std::pow( - std::log( 1.0 - Ared / ma9 ), 1.0/cal.fitParameter[4][col][row]) 
@@ -5817,8 +5823,8 @@ bool EUTelAnalysisCMSPixel::InitializeCalibration(std::string gainfilename, int 
 
   int i = 0;
 
-  // PSI Tanh Calibration (psi46expert vanilla):
-  if(strcmp(CalibrationType.c_str(),"psi_tanh") == 0){
+  // PSI Tanh / Erf Calibration (psi46expert vanilla):
+  if( (strcmp(CalibrationType.c_str(),"psi_tanh") == 0) || (strcmp(CalibrationType.c_str(),"psi_erf") == 0) ){
     gainFile.getline(string,500);
     gainFile.getline(string,500);
     gainFile.getline(string,500);

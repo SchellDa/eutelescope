@@ -9,10 +9,10 @@
     <detector name="SiPlanes" geartype="SiPlanesParameters">
       <siplanesID ID="225"/>
       <siplanesType type="TelescopeWithoutDUT"/>
-      <siplanesNumber number="8"/>
+      <siplanesNumber number="6"/>
       <parameter name="Geometry" 
                  type="StringVec" 
-                 value="Mimosa26.so Mimosa26.so Mimosa26.so CMSPixelSingle.so Mimosa26.so Mimosa26.so Mimosa26.so CMSPixelSingle.so"/>
+                 value="Mimosa26.so Mimosa26.so Mimosa26.so Mimosa26.so Mimosa26.so Mimosa26.so"/>
       <layers>
 	<!--DATURA-Plane 0 - EUD0 -->
 	<layer>
@@ -35,13 +35,13 @@
 	<!--DATURA-Plane 1 - EUD1 -->
 	<layer>
 	  <ladder 	ID="1" 
-			positionX="0.00"	positionY="0.00"	positionZ="78.0" 
+			positionX="0.00"	positionY="0.00"	positionZ="152.0" 
 			rotationZY="0.0"	rotationZX="0.0"	rotationXY="0.0" 
 			sizeX="21.2"		sizeY="10.6"		thickness="0.050" 
 			radLength="93.660734"
 			/>
 	  <sensitive 	ID="1" 
-			positionX="0.00"	positionY="0.00"	positionZ="78.0" 
+			positionX="0.00"	positionY="0.00"	positionZ="152.0" 
 			sizeX="21.2"		sizeY="10.6"		thickness="0.070"
 			npixelX="1152"		npixelY="576" 
 			pitchX="0.018402778"	pitchY="0.018402778"	resolution="0.0045" 
@@ -53,13 +53,13 @@
 	<!--DATURA-Plane 2 - EUD2 -->
 	<layer>
 	  <ladder 	ID="2" 
-			positionX="0.00"	positionY="0.00"	positionZ="155.0" 
+			positionX="0.00"	positionY="0.00"	positionZ="305.0" 
 			rotationZY="0.0"	rotationZX="0.0"	rotationXY="0.0" 
 			sizeX="21.2"		sizeY="10.6"		thickness="0.050" 
 			radLength="93.660734"
 			/>
 	  <sensitive 	ID="2" 
-			positionX="0.00"	positionY="0.00"	positionZ="155.0" 
+			positionX="0.00"	positionY="0.00"	positionZ="305.0" 
 			sizeX="21.2"		sizeY="10.6"		thickness="0.070"
 			npixelX="1152"		npixelY="576"
 			pitchX="0.018402778" 	pitchY="0.018402778" 	resolution="0.0045"
@@ -69,7 +69,7 @@
 			/>
 	</layer>
 	
-	<!--CMSPixel-Plane 1 - DUT -->
+	<!--CMSPixel-Plane 1 - DUT
 	<layer>
 	  <ladder 	ID="7" 
 			positionX="0.00"	positionY="0.00"	positionZ="200.0" 
@@ -86,18 +86,18 @@
 			rotation3="0.0" 	rotation4="-1.0" 
 			radLength="93.6"
 	                />
-	</layer>
-
+	</layer> 
+	-->
         <!--DATURA-Plane 3 - EUD0 -->
         <layer>
           <ladder         ID="3"
-                          positionX="0.00"        positionY="0.00"        positionZ="324.0"
+                          positionX="0.00"        positionY="0.00"        positionZ="456.0"
                           rotationZY="0.00"       rotationZX="0.0"        rotationXY="0.0" 
                           sizeX="21.2"            sizeY="10.6"            thickness="0.050"
                           radLength="93.660734"
                           />
           <sensitive      ID="3"
-                          positionX="0.00"        positionY="0.00"        positionZ="324.0" 
+                          positionX="0.00"        positionY="0.00"        positionZ="456.0" 
                           sizeX="21.2"            sizeY="10.6"            thickness="0.070"
                           npixelX="1152"          npixelY="576" 
                           pitchX="0.018402778"    pitchY="0.018402778"    resolution="0.0045" 
@@ -109,13 +109,13 @@
         <!--DATURA-Plane 4 - EUD0 -->
         <layer>
           <ladder         ID="4"
-                          positionX="0.00"        positionY="0.00"        positionZ="474.00"
+                          positionX="0.00"        positionY="0.00"        positionZ="607.00"
                           rotationZY="0.00"       rotationZX="0.0"        rotationXY="0.0" 
                           sizeX="21.2"            sizeY="10.6"            thickness="0.050"
                           radLength="93.660734"
                           />
           <sensitive      ID="4"
-                          positionX="0.00"        positionY="0.00"        positionZ="474.00" 
+                          positionX="0.00"        positionY="0.00"        positionZ="607.00" 
                           sizeX="21.2"            sizeY="10.6"            thickness="0.070"
                           npixelX="1152"          npixelY="576" 
                           pitchX="0.018402778"    pitchY="0.018402778"    resolution="0.0045" 
@@ -127,13 +127,13 @@
         <!--DATURA-Plane 5 - EUD0 -->
         <layer>
           <ladder         ID="5"
-                          positionX="0.00"        positionY="0.00"        positionZ="628.00"
+                          positionX="0.00"        positionY="0.00"        positionZ="760.00"
                           rotationZY="0.00"       rotationZX="0.0"        rotationXY="0.0" 
                           sizeX="21.2"            sizeY="10.6"            thickness="0.050"
                           radLength="93.660734"
                           />
           <sensitive      ID="5"
-                          positionX="0.00"        positionY="0.00"        positionZ="628.00" 
+                          positionX="0.00"        positionY="0.00"        positionZ="760.00" 
                           sizeX="21.2"            sizeY="10.6"            thickness="0.070"
                           npixelX="1152"          npixelY="576" 
                           pitchX="0.018402778"    pitchY="0.018402778"    resolution="0.0045" 
@@ -143,7 +143,7 @@
                           />
         </layer>
 
-	<!--CMSPixel-Plane 2 - REF -->
+	<!--CMSPixel-Plane 2 - REF
 	<layer>
 	  <ladder 	ID="8"
 			positionX="0.00"	positionY="0.00"	positionZ="688.0" 
@@ -161,6 +161,7 @@
 			radLength="93.6"
 	                />
 	</layer>
+	-->
       </layers>
     </detector>
   </detectors>

@@ -179,6 +179,11 @@
   <!--parameter name="PedeUserStartValuesZ" type="FloatVec"> 0 0 0 0 0 0 </parameter-->
   <!--reference hit collection name -->
   <!--parameter name="ReferenceCollection" type="string" value="reference"/-->
+
+  <parameter name="triCut" type="float" value="300.0"/>
+  <parameter name="driCut" type="float" value="400.0"/>
+  <parameter name="sixCut" type="float" value="500.0"/>
+
   <!--Maximal values of the hit residuals in the X direction for a track. Note: these numbers are ordered according to the z position of the sensors and NOT according to the sensor id.-->
   <parameter name="ResidualsXMax" type="FloatVec"> @ResidualXMax@ </parameter>
   <!--Minimal values of the hit residuals in the X direction for a track. Note: these numbers are ordered according to the z position of the sensors and NOT according to the sensor id.-->
