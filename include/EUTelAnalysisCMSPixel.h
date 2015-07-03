@@ -86,8 +86,8 @@ namespace eutelescope {
      *  @return a new EUTelAnalysisCMSPixel
      */
     virtual Processor*  newProcessor() { return new EUTelAnalysisCMSPixel; }
-    EUTelAnalysisCMSPixel(const EUTelAnalysisCMSPixel&); 
-    void operator=(EUTelAnalysisCMSPixel const&); 
+    EUTelAnalysisCMSPixel(const EUTelAnalysisCMSPixel&);
+    void operator=(EUTelAnalysisCMSPixel const&);
 
 
     //! Default constructor
@@ -172,9 +172,9 @@ namespace eutelescope {
       // Overloading ostream operator for printing hits:
       friend std::ostream& operator << (std::ostream& out, const hit& point) // output
       {
-	out << "(" << point.plane << ", " 
-	    << point.x << " +/- " << point.ex << " | " 
-	    << point.y << " +/- " << point.ey << " | " 
+	out << "(" << point.plane << ", "
+	    << point.x << " +/- " << point.ex << " | "
+	    << point.y << " +/- " << point.ey << " | "
 	    << point.z << " +/- " << point.ez << ")";
 	return out;
       }
@@ -254,7 +254,7 @@ namespace eutelescope {
       /* Use map since it's already ordered according to plane IDs.
        * We rely on begin() and rbegin() to deliver pointers to the first and last plane of the triplet.
        */
-      std::map<unsigned int,hit> hits;   
+      std::map<unsigned int,hit> hits;
     };
 
     class track {
@@ -329,7 +329,7 @@ namespace eutelescope {
 
     //! Initialize the calibration data, read in the files:
     bool InitializeCalibration(std::string gainfilename, int chip_id, std::string CalibrationType, calibration & cal);
-  
+
   protected:
     //! Silicon planes parameters as described in GEAR
     /*! This structure actually contains the following:
@@ -370,7 +370,7 @@ namespace eutelescope {
     int _nEvt;
     int _leff_val;
     int _nTelPlanes;
-    
+
     //! Timestamp of event number 0
     int64_t time_event0;
 
@@ -394,7 +394,7 @@ namespace eutelescope {
     double _DUTaligny; //from cmssya
     double _DUTz; // + _planePosition[2] // from -cmsdyvsty
     double _DUTrot; //compromise
-    double _DUTtilt; // from cmsdyvsy 
+    double _DUTtilt; // from cmsdyvsy
     double _DUTturn; // from cmsdxvsx  flat
 
     //! Timing REF specific variables and parameters
@@ -416,7 +416,7 @@ namespace eutelescope {
     std::string _gearfile;
     std::string _DUT_board;
     std::string _REF_board;
-    
+
     // Partly outdated GEAR readings:
     int * _planeSort;
     int * _planeID;
@@ -436,7 +436,7 @@ namespace eutelescope {
     /*! Used to refer to histograms by their names, i.e. to recall
      *  a histogram pointer using histogram name.
      */
-    
+
     // FIXME might become useful if tying to write histos with names depending on a parameter:
     //std::map<std::string , AIDA::IBaseHistogram * > _aidaHistoMap;
 
@@ -461,7 +461,7 @@ namespace eutelescope {
 
   AIDA::IHistogram1D * nAllHitHisto;
 
-  AIDA::IHistogram1D * dutnclusHisto, * dutcolHisto, * dutrowHisto, * dutnpxHisto, * dutadcHisto;
+  AIDA::IHistogram1D * dutnclusHisto, * dutcolHisto, * dutrowHisto, * dutnpxHisto, * dutadcHisto, * dutadcprecalHisto, * dutadc2pHisto;
   AIDA::IHistogram1D * refnclusHisto, * refcolHisto, * refrowHisto, * refnpxHisto, * refadcHisto;
 
   AIDA::IHistogram1D * tlutrigvstusHisto;

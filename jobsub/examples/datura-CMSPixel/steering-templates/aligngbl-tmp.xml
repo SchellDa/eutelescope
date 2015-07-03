@@ -70,7 +70,7 @@
   <!--Rotation Angle around X axis-->
   <!--parameter name="Alpha" type="double" value="0"/-->
   <!--Available directinos are:
- 0 --> direct  
+ 0 --> direct
  1 --> reverse -->
   <parameter name="ApplyAlignmentDirection" type="int" value="0"/>
   <!--Do you want the reference hit collection to be corrected by the shifts and tilts from the alignment collection? (default - false )-->
@@ -78,8 +78,8 @@
   <!--Rotation Angle around Y axis-->
   <!--parameter name="Beta" type="double" value="0"/-->
   <!--Available methods are:
- 0 --> shift only 
- 1 --> rotation first 
+ 0 --> shift only
+ 1 --> rotation first
  2 --> shift first -->
   <parameter name="CorrectionMethod" type="int" value="1"/>
   <!--Enable or disable DEBUG mode -->
@@ -118,7 +118,7 @@
   <parameter name="HitCollectionName" type="string" lcioInType="TrackerHit"> PreAlignedHit </parameter>
   <!--Track collection name-->
   <parameter name="TrackCollectionName" type="string" lcioInType="Track"> fittracks </parameter>
-  <!--Number of alignment constants used. Available mode are: 
+  <!--Number of alignment constants used. Available mode are:
 1 - shifts in the X and Y directions and a rotation around the Z axis,
 2 - only shifts in the X and Y directions
 3 - (EXPERIMENTAL) shifts in the X,Y and Z directions and rotations around all three axis-->
@@ -126,7 +126,7 @@
   <!--This is the name of the alignment collection to be saved into the slcio file-->
   <!--parameter name="AlignmentConstantCollectionName" type="string" value="alignment"/-->
   <!--This is the name of the LCIO file name with the output alignmentconstants (add .slcio)-->
-  <parameter name="AlignmentConstantLCIOFile" type="string" value="@DatabasePath@/run@RunNumber@-align-db.slcio"/> 
+  <parameter name="AlignmentConstantLCIOFile" type="string" value="@DatabasePath@/run@RunNumber@-align-db.slcio"/>
   <!--Set how many hits (=planes) can be missing on a track candidate.-->
   <!--parameter name="AllowedMissingHits" type="int" value="0"/-->
   <!--Do you want the reference hit collection to be corrected by the shifts and tilts from the alignment collection? (default - false )-->
@@ -148,9 +148,9 @@
   <!--This is the name of the hot pixel collection to be saved into the output slcio file-->
   <!--parameter name="HotPixelCollectionName" type="string" value="hotpixel_apix"/-->
   <!--Selects the source of input hits.
-0 - hits read from hitfile with simple trackfinding. 
-1 - hits read from output of tracking processor. 
-2 - Test mode. Simple internal simulation and simple trackfinding. 
+0 - hits read from hitfile with simple trackfinding.
+1 - hits read from output of tracking processor.
+2 - Test mode. Simple internal simulation and simple trackfinding.
 3 - Mixture of a track collection from the telescope and hit collections for the DUT (only one DUT layer can be used unfortunately)-->
   <parameter name="InputMode" type="int" value="0"/>
   <!--Maximal number of track candidates.-->
@@ -182,7 +182,7 @@
 
   <parameter name="triCut" type="float" value="300.0"/>
   <parameter name="driCut" type="float" value="400.0"/>
-  <parameter name="sixCut" type="float" value="500.0"/>
+  <parameter name="sixCut" type="float" value="300.0"/>
 
   <!--Maximal values of the hit residuals in the X direction for a track. Note: these numbers are ordered according to the z position of the sensors and NOT according to the sensor id.-->
   <parameter name="ResidualsXMax" type="FloatVec"> @ResidualXMax@ </parameter>

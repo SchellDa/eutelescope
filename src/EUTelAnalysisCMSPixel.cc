@@ -253,7 +253,7 @@ void EUTelAnalysisCMSPixel::init() {
   _planeResolution = new double[_nTelPlanes];
 
   for(int i = 0; i < _nTelPlanes; i++) {
-    
+
     _planeID[i]=_siPlanesLayerLayout->getID(i);
     _planePosition[i]=_siPlanesLayerLayout->getLayerPositionZ(i);
     _planeThickness[i]=_siPlanesLayerLayout->getLayerThickness(i);
@@ -272,11 +272,11 @@ void EUTelAnalysisCMSPixel::init() {
     ss << "  Res [um] = " << _planeResolution[ipl]*1000.;
 
     streamlog_out( MESSAGE2 ) <<  ss.str() << std::endl;
-    
+
   }
 
   // Check for abnormalities in DUT position:
-  if(_DUTz <= 0.001) { 
+  if(_DUTz <= 0.001) {
     streamlog_out(ERROR) << "Your DUT seems to be at the same z position as the 3rd telescope plane." << std:: endl << "Please adjust DUT_pos_z." << std::endl;
     throw InvalidGeometryException("GEAR manager is not initialised");
   }
@@ -354,16 +354,16 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
       _planeNormal[ 1 ] =  0.; // Y
       _planeNormal[ 2 ] =  1.; // Z
 
-      TVector3  _normalTVec( _planeNormal[0], _planeNormal[1], _planeNormal[2]); 
+      TVector3  _normalTVec( _planeNormal[0], _planeNormal[1], _planeNormal[2]);
 
       // do initial rotation from GEAR
       try{
  	double gRotation[3] = { 0., 0., 0.}; // not rotated
-                         
+
 	gRotation[0] = _siPlanesLayerLayout->getLayerRotationXY(iplane); // Euler alpha
 	gRotation[1] = _siPlanesLayerLayout->getLayerRotationZX(iplane); // Euler alpha
 	gRotation[2] = _siPlanesLayerLayout->getLayerRotationZY(iplane); // Euler alpha
-                          
+
 	// input angles are in degree, translate into radian
 	gRotation[0] =  gRotation[0]*3.1415926/180.;
 	gRotation[1] =  gRotation[1]*3.1415926/180.;
@@ -374,7 +374,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	r.RotateY( gRotation[1] );
 	r.RotateZ( gRotation[0] );
 	_normalTVec.Transform( r );
-                                  
+
 	_planeNormal[0] = _normalTVec[0];
 	_planeNormal[1] = _normalTVec[1];
 	_planeNormal[2] = _normalTVec[2];
@@ -386,8 +386,8 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
     if( isFirstEvent() ) _isFirstEvent = false;
 
   } // FirstEvent
-  
- 
+
+
   // ################## TIMING CALCULATIONS ###########################
   static int64_t time_prev_tlu = event->getTimeStamp(); //init
 
@@ -435,7 +435,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
     tlutrigvstusHisto->fill(int((time_now_tlu)/gTLU/1E6 )); // [ms]
 
   } // > time_event0
-   
+
   // Informational message about event number and timing:
   if( _nEvt < 20 || _nEvt % 1000 == 0 ) {
 
@@ -452,13 +452,13 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 			      << " Hz"
 			      << std::endl;
   }
-  
+
   // Renew the timestamps for the next event:
   time_prev_tlu = time_now_tlu;
-  
+
   // Increase event count
   _nEvt++;
-     
+
   //----------------------------------------------------------------------------
   // check input collection (aligned hits):
 
@@ -542,7 +542,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
   for(size_t i = 0; i < pixelDUTData->size(); ++i ) {
     // Load the information of the hit pixel into genericPixel
     pixelDUTData->getSparsePixelAt(i, pixel);
-      
+
     CMSPixel::pixel px;
     px.roc = 8;
 
@@ -561,11 +561,26 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
   }
   //streamlog_out( WARNING ) << "Evt " << event->getEventNumber() << ": " << dutPixels->size() << " on DUT";
 
+  // PreCalibrated dut pixel
+  std::vector<cluster> ClustDUTPreCal = GetClusters(dutPixels);
+
+  // DUT cluster statistics:
+  if( dutPixels->size() > 0 ) {
+    for( std::vector<cluster>::iterator c = ClustDUTPreCal.begin(); c != ClustDUTPreCal.end(); c++ ){
+      dutadcprecalHisto->fill( c->charge );
+    }//DUT clusters
+  }//pix
+
   // Calibrate the pixel hits with the initialized calibration data:
   if(!CalibratePixels(dutPixels,dut_calibration))
     throw StopProcessingException(this);
   ClustDUT = GetClusters(dutPixels);
 
+  if( ClustDUT.size() > 1){
+    for(std::vector<cluster>::iterator c = ClustDUT.begin(); c != ClustDUT.end(); c++){
+      dutadc2pHisto->fill( c->charge );
+    }
+  }
 
   // Read the REF event:
   std::vector<CMSPixel::pixel> * refPixels = new std::vector<CMSPixel::pixel>;
@@ -588,7 +603,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
   for(size_t i = 0; i < pixelREFData->size(); ++i ) {
     // Load the information of the hit pixel into genericPixel
     pixelREFData->getSparsePixelAt(i, pixel);
-      
+
     CMSPixel::pixel px;
     px.roc = 8;
     px.col = pixel->getXCoord();
@@ -1055,7 +1070,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
     // scale hit to CMS pixel:
     // sizeX="21.2"  sizeY="10.6"
-    // npixelX="1152"  npixelY="576" 
+    // npixelX="1152"  npixelY="576"
 
     streamlog_out(DEBUG2) << " x " << int( ( (*trip).gethit(2).x + 10.6 ) / 0.15 )
 			  << ", y " << int( ( (*trip).gethit(2).y +  5.3 ) / 0.10 ) << std::endl;
@@ -1102,7 +1117,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	  ddAMin = ddA;
       }
     }
-    
+
 
     triddaMindutHisto->fill(ddAMin);
     if(ddAMin < 0.3)
@@ -1200,19 +1215,19 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	tridx3Histo->fill( (*trip).getdx((*lhit))*1E0 );
 	tridy3Histo->fill( (*trip).getdy((*lhit))*1E0 ); // 65 um at 4.7 GeV with CMS
 	tridx3bHisto->fill( (*trip).getdx((*lhit))*1E3 ); // finer binning
-	tridy3bHisto->fill( (*trip).getdy((*lhit))*1E3 ); // 
+	tridy3bHisto->fill( (*trip).getdy((*lhit))*1E3 ); //
       }
       else if( (*lhit).plane == 4 ) {
 	tridx4Histo->fill( (*trip).getdx((*lhit))*1E0 );
 	tridy4Histo->fill( (*trip).getdy((*lhit))*1E0 ); //174 um at 4.7 GeV
 	tridx4bHisto->fill( (*trip).getdx((*lhit))*1E3 ); // finer binning
-	tridy4bHisto->fill( (*trip).getdy((*lhit))*1E3 ); // 
+	tridy4bHisto->fill( (*trip).getdy((*lhit))*1E3 ); //
       }
       else if( (*lhit).plane == 5 ) {
 	tridx5Histo->fill( (*trip).getdx((*lhit))*1E0 );
 	tridy5Histo->fill( (*trip).getdy((*lhit))*1E0 ); //273 um at 4.7 GeV
 	tridx5bHisto->fill( (*trip).getdx((*lhit))*1E3 ); // finer binning
-	tridy5bHisto->fill( (*trip).getdy((*lhit))*1E3 ); // 
+	tridy5bHisto->fill( (*trip).getdy((*lhit))*1E3 ); //
       }
     }// Resolution studies
 
@@ -1230,7 +1245,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
       }
 
       if( runNumber == 11289 && eventTime >  540 && eventTime <  560 ) leff = 0;
-      
+
       if(leff)
 	cmstimingcut->fill(eventTime);
 
@@ -1298,7 +1313,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	else if(c->charge < 8)
 	  lowClusterCharge = true;
 
-	
+
 	int ncol = colmax - colmin + 1;
 	int nrow = rowmax - rowmin + 1;
 
@@ -1378,7 +1393,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	  cmsdx = cmsx + DUTrot*cmsy - DUTalignx + xA; // residual x
 	  cmsdy = cmsy - DUTrot*cmsx - DUTaligny + yA; // residual y
 	}
-	
+
 	//if( ETHh ) {
 	//  cmsdx = cmsx + DUTrot*cmsy - DUTalignx - xA; // residual x
 	//  cmsdy = cmsy - DUTrot*cmsx - DUTaligny - yA; // residual y
@@ -1395,7 +1410,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	bool seedPixelLost = false;     //Check if the seedPixel was
 					//probably lost
 	if(fiducial && abs( cmsdx ) < 0.15 && abs( ty-0.000 ) < 0.002 &&  abs( tx-0.000 ) < 0.002 ) { //Same
-													  //requirements 
+													  //requirements
 													  //as for cmsdyfct
 	  if(c->size == 1 && abs( cmsdy ) > 0.04){
 	    seedPixelLost = true;
@@ -1404,9 +1419,9 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
 	}
 
-	
-	
-	
+
+
+
 
 	if( leff ){
 	  cmsdxHisto->fill( cmsdx*1E3 );
@@ -1420,7 +1435,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
 	  if( abs( cmsdy ) < 0.10 ) cmsdxfcHisto->fill( cmsdx*1E3 );
 	  if( abs( cmsdx ) < 0.15 ) cmsdyfcHisto->fill( cmsdy*1E3 );
-	  
+
 
 	}//CMS fiducial
 
@@ -1489,7 +1504,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	    }
 	    if( Q0 < 30 ) {
 	      cmsdyfctq3Histo->fill( cmsdy*1E3 ); // was fctq2. 7.4 um @ 4 GeV, 19 deg
-	      if( ldot ) 
+	      if( ldot )
 		cmsdyfctqdotHisto->fill( cmsdy*1E3 ); // 8.1 um in run 5234
 	      else
 		cmsdyfctq3dHisto->fill( cmsdy*1E3 ); // 7.2 um in run 5234
@@ -1545,7 +1560,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
 	  cmsqHisto->fill( c->charge );
 	  cmsq0Histo->fill( Q0 );
-	  
+
 
 	  trixlkHisto->fill( -xA ); // -xA = x_DP = out
 	  triylkHisto->fill( -yA ); // -yA = y_DP = up
@@ -1591,7 +1606,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
 	      cmsetaHisto->fill( eta );
 	    }
-	    
+
 	    float qseed = 0;
 	    for( std::vector<CMSPixel::pixel>::iterator px = c->vpix.begin(); px != c->vpix.end(); px++ ){
 	      cmspxqHisto->fill( px->vcal);
@@ -1606,12 +1621,12 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
 	    cmsqfHisto->fill( c->charge );
 	    cmsq0fHisto->fill( Q0 );
-	    
+
 	    if(seedPixelLost)
 	      cmsqfOnePixeldyCutHisto->fill( c->charge );
 	    else
 	      cmsqfNotOnePixeldyCutHisto->fill( c->charge );
-		
+
 
 	    if( c->size == 1){
 	      cmsqfcl1Histo->fill( c->charge );
@@ -1648,13 +1663,13 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	    if(lowClusterCharge) {
 	      cmsxyHitMapLowCharge->fill( xAt, yAt );
 	    }
-	    
+
 	    cmsqvsx->fill( xAt, c->charge ); // cluster charge profile
 	    cmsqvsy->fill( yAt, c->charge ); // cluster charge profile
 	    cmsqvsxm->fill( xmod, c->charge ); //q within pixel
 	    cmsqvsym->fill( ymod, c->charge ); //q within pixel
 	    cmsqvsxmym->fill( xmod, ymod, c->charge ); // cluster charge profile
-	    
+
 	    // KIT: added for efficiency analysis
 	    double dotsize=10;
 	    double cutsize=5;
@@ -1769,9 +1784,9 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	      if( nrow == 2 ) cmsetavsym2->fill( ymod, eta ); // eta within pixel
 	      cmsetavsym3->fill( ymd3, eta ); // eta within pixel
 
-	      if(      nrow == 1 ) 
+	      if(      nrow == 1 )
 		cmsym1Histo->fill( ymod ); //where are 1-rows?
-	      else if( nrow == 2 ) 
+	      else if( nrow == 2 )
 		cmsym2Histo->fill( ymod ); //where are 2-rows?
 
 	    } // q Landau peak
@@ -1962,7 +1977,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	  gbl::GblTrajectory traj(traj_points, false); // curvature = false
 	  traj.fit( Chi2, Ndf, lostWeight );
 
-	  streamlog_out(DEBUG2) << "Triplet GBL Fit: Chi2/Ndf=" << Chi2/Ndf 
+	  streamlog_out(DEBUG2) << "Triplet GBL Fit: Chi2/Ndf=" << Chi2/Ndf
 				<< " lostWeight=" << lostWeight << std::endl;
 
 	  traj.milleOut( *mille ); // write to mille.bin
@@ -2000,7 +2015,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
   }// iterate over upstream triplets
 
-    
+
   ntriHisto->fill( upstream_triplets->size() );
   lkAvst->fill( (time_now_tlu-time_event0)/fTLU, ntrilk );
 
@@ -2030,7 +2045,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
       }
 
       double cmsxe = cmsx + DUTrot*cmsy - DUTalignx; // aligned w.r.t. telescope
-      double cmsye = cmsy - DUTrot*cmsx - DUTaligny; // 
+      double cmsye = cmsy - DUTrot*cmsx - DUTaligny; //
 
       cmsxeHisto->fill( cmsxe );
       cmsyeHisto->fill( cmsye );
@@ -2362,7 +2377,7 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 
 
     gblndfHisto->fill( Ndf );
-    if( Ndf == 8 ) 
+    if( Ndf == 8 )
       gblchi2aHisto->fill( Chi2 );
     else
       gblchi2bHisto->fill( Chi2 );
@@ -2589,9 +2604,9 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
 	eff1800->fill( (time_now_tlu-time_event0)/fTLU, nm );
 	eff3600->fill( (time_now_tlu-time_event0)/fTLU, nm );
 
-	if( leff ) { 
+	if( leff ) {
 	    effvsxmym->fill( xmod, ymod, nm ); // CMS DUT efficiency profile
-	    
+
 	    // KIT: added for efficiency analysis
 	    double dotsize=10;
 	    double cutsize=5;
@@ -2643,19 +2658,19 @@ void EUTelAnalysisCMSPixel::processEvent( LCEvent * event ) {
     double zy = intersect.y;
 
     if( abs(dy) < 0.1 ) { // no cut on dx
-      if( abs( kx ) > 0.003 ) { // 
+      if( abs( kx ) > 0.003 ) { //
 	sixzx3Histo->fill( zx - _planePosition[2] );
       }
-      if( abs( kx ) > 0.002 ) { // 
+      if( abs( kx ) > 0.002 ) { //
 	sixzx2Histo->fill( zx - _planePosition[2] );
       }
     }
 
     if( abs(dx) < 0.1 ) { // no cut on dy
-      if( abs( ky ) > 0.003 ) { // 
+      if( abs( ky ) > 0.003 ) { //
 	sixzy3Histo->fill( zy - _planePosition[2] );
       }
-      if( abs( ky ) > 0.002 ) { // 
+      if( abs( ky ) > 0.002 ) { //
 	sixzy2Histo->fill( zy - _planePosition[2] );
       }
     }
@@ -2787,7 +2802,7 @@ void EUTelAnalysisCMSPixel::end(){
   }
   streamlog_out(MESSAGE5) << "REFy    " << REFy << std::endl;
 
-  streamlog_out(MESSAGE5) 
+  streamlog_out(MESSAGE5)
     << std::endl
     << "runlistPreAlign: "
     << _nRun
@@ -2895,7 +2910,7 @@ void EUTelAnalysisCMSPixel::end(){
       streamlog_out( MESSAGE2 ) << command.c_str() << std::endl;
 
       // run pede and create a streambuf that reads its stdout and stderr
-      redi::ipstream pede( command.c_str(), redi::pstreams::pstdout|redi::pstreams::pstderr ); 
+      redi::ipstream pede( command.c_str(), redi::pstreams::pstdout|redi::pstreams::pstderr );
       std::string output;
       while ( getline( pede, output ) ) {
 	streamlog_out( MESSAGE2 ) << output << std::endl;
@@ -2948,13 +2963,13 @@ void EUTelAnalysisCMSPixel::end(){
 
 	  if( isFixed ) {
 	    streamlog_out(MESSAGE5) << "Parameter " << lpar
-				    << std::resetiosflags(std::ios::floatfield) << std::setprecision(9) 
+				    << std::resetiosflags(std::ios::floatfield) << std::setprecision(9)
 				    << " is at " << tokens[1]
 				    << " (fixed)"  << std::endl;
 	  }
 	  else {
 	    streamlog_out(MESSAGE5) << "Parameter " << lpar
-				    << std::resetiosflags(std::ios::floatfield) << std::setprecision(9) 
+				    << std::resetiosflags(std::ios::floatfield) << std::setprecision(9)
 				    << " is at " << tokens[1]
 				    << " +/- " << tokens[4] << std::endl;
 	  }
@@ -3153,10 +3168,17 @@ void EUTelAnalysisCMSPixel::bookHistos()
     createHistogram1D( "dutnpx", 11, -0.5, 10.5 );
   dutnpxHisto->setTitle( "DUT cluster size;DUT pixel per cluster;DUT clusters" );
 
+  dutadcprecalHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "dutadcprecal", 1500, 0, 300 );
+  dutadcprecalHisto->setTitle( "DUT cluster charge;DUT cluster charge [ADC];DUT clusters" );
+
   dutadcHisto = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "dutadc", 100, 0, 100 );
+    createHistogram1D( "dutadc", 500, 0, 100 );
   dutadcHisto->setTitle( "DUT cluster charge;DUT cluster charge [ke];DUT clusters" );
 
+  dutadc2pHisto = AIDAProcessor::histogramFactory(this)->
+    createHistogram1D( "dutadc2p", 500, 0, 100 );
+  dutadc2pHisto->setTitle( "DUT two pixel cluster charge;DUT cluster charge [ke];DUT clusters" );
 
   refnclusHisto = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "refnclus", 11, -0.5, 11.5 );
@@ -3175,7 +3197,7 @@ void EUTelAnalysisCMSPixel::bookHistos()
   refnpxHisto->setTitle( "REF cluster size;REF pixel per cluster;REF clusters" );
 
   refadcHisto = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "refadc", 100, 0, 100 );
+    createHistogram1D( "refadc", 500, 0, 100 );
   refadcHisto->setTitle( "REF cluster charge;REF cluster charge [ke];REF clusters" );
 
   // telescope hits per plane:
@@ -3411,7 +3433,7 @@ void EUTelAnalysisCMSPixel::bookHistos()
   cmstimingcut = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "cmstimingcut", 140, 0, 700 );
   cmstimingcut->setTitle( "check if timing cut was applied;time[s]" );
-  
+
   twoClusterDistanceHisto = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "twoClusterDistance", 200, 0, 5 );
   twoClusterDistanceHisto->setTitle( "Two Cluster Distance;cluster distance [mm];clusters" );
@@ -3470,15 +3492,15 @@ void EUTelAnalysisCMSPixel::bookHistos()
   cmsyyHisto->setTitle( "y correlation;DUT cluster row;telescope triplet y [mm];clusters" );
 
   cmspxqHisto = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmspxq", 100, 0, 25 );
+    createHistogram1D( "cmspxq", 250, 0, 25 );
   cmspxqHisto->setTitle( "DUT pixel charge linked;DUT pixel charge [ke];DUT linked pixels" );
 
   cmspxqcl2Histo = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmspxqcl2", 100, 0, 25 );
+    createHistogram1D( "cmspxqcl2", 1000, 0, 25 );
   cmspxqcl2Histo->setTitle( "DUT pixel charge linked 2 pixel cluster;DUT pixel charge [ke];DUT linked pixels" );
 
   cmspxqrow2Histo = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmspxqrow2", 100, 0, 25 );
+    createHistogram1D( "cmspxqrow2", 1000, 0, 25 );
   cmspxqrow2Histo->setTitle( "DUT pixel charge linked 2 row cluster;DUT pixel charge [ke];DUT linked pixels" );
 
   cmssxaHisto = AIDAProcessor::histogramFactory(this)->
@@ -3671,11 +3693,11 @@ void EUTelAnalysisCMSPixel::bookHistos()
   cmsrowHisto->setTitle( "DUT linked row;DUT linked cluster row;DUT linked clusters" );
 
   cmsqHisto = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmsq", 100, 0, 100 );
+    createHistogram1D( "cmsq", 500, 0, 100 );
   cmsqHisto->setTitle( "DUT cluster charge linked;DUT cluster charge [ke];DUT linked clusters" );
 
   cmsq0Histo = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmsq0", 100, 0, 100 );
+    createHistogram1D( "cmsq0", 500, 0, 100 );
   cmsq0Histo->setTitle( "DUT cluster charge linked;normal DUT cluster charge [ke];DUT linked clusters" );
 
   trixlkHisto = AIDAProcessor::histogramFactory(this)->
@@ -3780,56 +3802,56 @@ void EUTelAnalysisCMSPixel::bookHistos()
   cmsetaoddHisto->setTitle( "DUT 2-row eta (odd columns);DUT cluster 2-row eta;DUT 2-row clusters" );
 
   cmsqfHisto = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmsqf", 100, 0, 100 );
+    createHistogram1D( "cmsqf", 500, 0, 100 );
   cmsqfHisto->setTitle( "DUT cluster charge linked fiducial;DUT cluster charge [ke];DUT linked fiducial clusters" );
 
   cmsqfOnePixeldyCutHisto = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmsqfOnePixeldyCut", 100, 0, 100 );
+    createHistogram1D( "cmsqfOnePixeldyCut", 500, 0, 100 );
   cmsqfOnePixeldyCutHisto->setTitle( "DUT cluster charge linked fiducial;DUT cluster charge [ke];DUT linked fiducial clusters" );
-  
+
   cmsqfNotOnePixeldyCutHisto = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmsqfNotOnePixeldyCut", 100, 0, 100 );
+    createHistogram1D( "cmsqfNotOnePixeldyCut", 500, 0, 100 );
   cmsqfNotOnePixeldyCutHisto->setTitle( "DUT cluster charge linked fiducial;DUT cluster charge [ke];DUT linked fiducial clusters" );
-  
+
 
   cmsqfcl1Histo = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmsqfcl1", 100, 0, 100 );
+    createHistogram1D( "cmsqfcl1", 500, 0, 100 );
   cmsqfcl1Histo->setTitle( "DUT 1 pixel cluster charge linked fiducial;DUT cluster charge [ke];DUT linked fiducial clusters" );
 
   cmsqfcl2Histo = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmsqfcl2", 100, 0, 100 );
+    createHistogram1D( "cmsqfcl2", 500, 0, 100 );
   cmsqfcl2Histo->setTitle( "DUT 2 pixel cluster charge linked fiducial;DUT cluster charge [ke];DUT linked fiducial clusters" );
 
   cmsqfrow1Histo = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmsqfrow1", 100, 0, 100 );
+    createHistogram1D( "cmsqfrow1", 500, 0, 100 );
   cmsqfrow1Histo->setTitle( "DUT 1 row cluster charge linked fiducial;DUT cluster charge [ke];DUT linked fiducial clusters" );
 
   cmsqfrow2Histo = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmsqfrow2", 100, 0, 100 );
+    createHistogram1D( "cmsqfrow2", 500, 0, 100 );
   cmsqfrow2Histo->setTitle( "DUT 2 row cluster charge linked fiducial;DUT cluster charge [ke];DUT linked fiducial clusters" );
 
   cmsq0fHisto = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmsq0f", 100, 0, 100 );
+    createHistogram1D( "cmsq0f", 500, 0, 100 );
   cmsq0fHisto->setTitle( "DUT cluster charge linked fiducial;normal DUT cluster charge [ke];DUT linked fiducial clusters" );
 
   cmsqf0Histo = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmsqf0", 100, 0, 100 );
+    createHistogram1D( "cmsqf0", 500, 0, 100 );
   cmsqf0Histo->setTitle( "DUT cluster charge linked fiducial bias dot;DUT cluster charge [ke];DUT linked fiducial clusters bias dot" );
 
   cmsqf1Histo = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmsqf1", 100, 0, 100 );
+    createHistogram1D( "cmsqf1", 500, 0, 100 );
   cmsqf1Histo->setTitle( "DUT cluster charge linked fiducial no dot;DUT cluster charge [ke];DUT linked fiducial clusters no dot" );
 
   cmsqf2Histo = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmsqf2", 100, 0, 100 );
+    createHistogram1D( "cmsqf2", 500, 0, 100 );
   cmsqf2Histo->setTitle( "DUT cluster charge linked fiducial no dot core;DUT cluster charge [ke];DUT linked fiducial clusters no dot core" );
 
   cmsqf3Histo = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmsqf3", 100, 0, 100 );
+    createHistogram1D( "cmsqf3", 500, 0, 100 );
   cmsqf3Histo->setTitle( "DUT cluster charge linked fiducial no dot edge;DUT cluster charge [ke];DUT linked fiducial clusters no dot edge" );
-  
+
   cmsqseedfHisto = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "cmsqseedf", 100, 0, 100 );
+    createHistogram1D( "cmsqseedf", 500, 0, 100 );
   cmsqseedfHisto->setTitle( "DUT cluster seed charge linked fiducial;DUT seed charge [ke];DUT linked fiducial clusters" );
 
   cmsdyvsxm = AIDAProcessor::histogramFactory(this)->
@@ -3920,7 +3942,7 @@ void EUTelAnalysisCMSPixel::bookHistos()
 
   cmsxyHitMapLowCharge = AIDAProcessor::histogramFactory(this)->
     createHistogram2D( "cmsxyHitMapLowCharge", 170, -8.5, 8.5, 170, -8.5, 8.5 );
-  cmsxyHitMapLowCharge->setTitle( "HitMap for chip with low cluster charges;triplet x_{DUT} [mm];triplet y_{DUT} [mm];tracks" );  
+  cmsxyHitMapLowCharge->setTitle( "HitMap for chip with low cluster charges;triplet x_{DUT} [mm];triplet y_{DUT} [mm];tracks" );
 
   cmsqvsx = AIDAProcessor::histogramFactory(this)->
     createProfile1D( "cmsqvsx", 380, -3.8, 3.8, 0, 100 );
@@ -4472,7 +4494,7 @@ void EUTelAnalysisCMSPixel::bookHistos()
   refpixvsxmym->setTitle( "REF pixel occupancy;x mod 300 #mum;y mod 200 #mum;clusters" );
 
   refqHisto = AIDAProcessor::histogramFactory(this)->
-    createHistogram1D( "refq", 100, 0, 100 );
+    createHistogram1D( "refq", 500, 0, 100 );
   refqHisto->setTitle( "REF cluster charge linked;REF cluster charge [ke];REF linked clusters" );
 
   refqvsxmym = AIDAProcessor::histogramFactory(this)->
@@ -5179,15 +5201,15 @@ void EUTelAnalysisCMSPixel::bookHistos()
   correvt100Histo = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "correvt100", 100, 0, 100000 );
   correvt100Histo->setTitle( "Correlated events (with matched DUT cluster);matched events/1000 events;events" );
-  
+
   correvt300Histo = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "correvt300", 300, 0, 300000 );
   correvt300Histo->setTitle( "Correlated events (with matched DUT cluster);matched events/1000 events;events" );
-  
+
   correvt1000Histo = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "correvt1000", 1000, 0, 1000000 );
   correvt1000Histo->setTitle( "Correlated events (with matched DUT cluster);matched events/1000 events;events" );
-  
+
   correvt4000Histo = AIDAProcessor::histogramFactory(this)->
     createHistogram1D( "correvt4000", 4000, 0, 4000000 );
   correvt4000Histo->setTitle( "Correlated events (with matched DUT cluster);matched events/1000 events;events" );
@@ -5346,7 +5368,7 @@ std::vector<EUTelAnalysisCMSPixel::triplet> * EUTelAnalysisCMSPixel::FindTriplet
   double triplet_angle_cut = 0.010;
   // Cut on the triplet residual on the middle plane:
   double triplet_residual_cut = 0.1; // [mm]
-  
+
   for( std::vector<hit>::iterator ihit = hits->begin(); ihit != hits->end(); ihit++ ){
     if( (*ihit).plane != plane0 ) continue; // First plane
 
@@ -5380,7 +5402,7 @@ std::vector<EUTelAnalysisCMSPixel::triplet> * EUTelAnalysisCMSPixel::FindTriplet
 
 
 std::vector<EUTelAnalysisCMSPixel::track> * EUTelAnalysisCMSPixel::MatchTriplets(std::vector<triplet> * up, std::vector<triplet> * down, double z_match) {
-  
+
   std::vector<track> * tracks = new std::vector<track>;
 
   // Cut on the matching of two triplets [mm]
@@ -5404,7 +5426,7 @@ std::vector<EUTelAnalysisCMSPixel::track> * EUTelAnalysisCMSPixel::MatchTriplets
       // Track impact position at Matching Point from Upstream:
       double xA = (*trip).getx_at(z_match);
       double yA = (*trip).gety_at(z_match);
-      
+
       double dx = xB - xA; // driplet - triplet
       double dy = yB - yA;
 
@@ -5412,15 +5434,15 @@ std::vector<EUTelAnalysisCMSPixel::track> * EUTelAnalysisCMSPixel::MatchTriplets
       sixkyHisto->fill( ky*1E3 );
       sixdxHisto->fill( dx );
       sixdyHisto->fill( dy );
-      
-      
+
+
       if( abs(dy) < 0.4 ) sixdxcHisto->fill( dx*1E3 ); // sig = 17 um at 5 GeV
       if( abs(dx) < 0.4 ) sixdycHisto->fill( dy*1E3 );
 
       // match driplet and triplet:
       if( abs(dx) > intersect_residual_cut) continue;
       if( abs(dy) > intersect_residual_cut) continue;
-	
+
       sixkxcHisto->fill( kx*1E3 );
       sixkycHisto->fill( ky*1E3 );
       sixxHisto->fill( -xA ); // -xA = x_DP = out
@@ -5566,12 +5588,12 @@ void EUTelAnalysisCMSPixel::FillDeltaTPlots(double time_now_tlu, double time_bef
   t1000Histo->fill( ( time_now_tlu - time_event0 ) / fTLU ); //event time
   t1800Histo->fill( ( time_now_tlu - time_event0 ) / fTLU ); //event time
   t3600Histo->fill( ( time_now_tlu - time_event0 ) / fTLU ); //event time
-  
+
   // dt plots:
   dtHisto->fill( ( time_now_tlu - time_before ) / 384E0 ); //us
   dtmsHisto->fill( ( time_now_tlu - time_before ) / 384E3 ); //ms
   logdtHisto->fill( std::log( ( time_now_tlu - time_before ) / 384E3 ) / std::log(10.0) );
-  
+
   //FIXME fill this only if cluster exist in the DUT!
   logdtcmsHisto->fill( std::log( ( time_now_tlu - time_before ) / gTLU/1E6 ) / std::log(10.0) );
   // scan for Umlauftakt:
@@ -5602,7 +5624,7 @@ void EUTelAnalysisCMSPixel::FillDeltaTPlots(double time_now_tlu, double time_bef
   tfvst10->fill( ganz, frac ); // phase [-0.5,0.5]
   tfvst100->fill( ganz, frac ); // phase [-0.5,0.5]
   tfvst300->fill( ganz, frac ); // phase [-0.5,0.5]
-  
+
 }
 
 void EUTelAnalysisCMSPixel::FillClusterStatisticsPlots(std::vector<cluster> dutclusters, int dutpix, std::vector<cluster> refclusters, int refpix) {
@@ -5672,7 +5694,7 @@ std::vector<EUTelAnalysisCMSPixel::cluster> EUTelAnalysisCMSPixel::GetClusters(s
           for( unsigned int p = 0; p < c.vpix.size(); p++ ){//vpix in cluster so far
             int dr = c.vpix.at(p).row - pixels->at(i).row;
             int dc = c.vpix.at(p).col - pixels->at(i).col;
-            if( (   dr>=-fCluCut) && (dr<=fCluCut) 
+            if( (   dr>=-fCluCut) && (dr<=fCluCut)
 		&& (dc>=-fCluCut) && (dc<=fCluCut) ) {
               c.vpix.push_back(pixels->at(i));
 	      gone[i] = 1;
@@ -5729,7 +5751,7 @@ std::vector<EUTelAnalysisCMSPixel::cluster> EUTelAnalysisCMSPixel::GetClusters(s
 bool EUTelAnalysisCMSPixel::CalibratePixels(std::vector<CMSPixel::pixel> * pixels, EUTelAnalysisCMSPixel::calibration cal) {
 
   for( std::vector<CMSPixel::pixel>::iterator pix = pixels->begin(); pix != pixels->end(); pix++) {
-    
+
     size_t col = (*pix).col;
     size_t row = (*pix).row;
 
@@ -5756,7 +5778,7 @@ bool EUTelAnalysisCMSPixel::CalibratePixels(std::vector<CMSPixel::pixel> * pixel
     if( cal.chip_id == 405) keV = 0.290;
 
     if( cal.chip_id == 404) keV = 0.250;
-    
+
     // PSI Tanh Calibration (psi46expert vanilla):
     if(strcmp(cal.type.c_str(),"psi_tanh") == 0) {
       (*pix).vcal = (TMath::ATanH(((*pix).raw - cal.fitParameter[3][col][row])/cal.fitParameter[2][col][row])
@@ -5765,12 +5787,12 @@ bool EUTelAnalysisCMSPixel::CalibratePixels(std::vector<CMSPixel::pixel> * pixel
 
     // PSI Erf Calibration:
     else if(strcmp(cal.type.c_str(),"psi_erf") == 0) {
-      (*pix).vcal = (cal.fitParameter[0][col][row] + cal.fitParameter[1][col][row] * TMath::ErfInverse((*pix).raw / cal.fitParameter[3][col][row] - cal.fitParameter[2][col][row] )) * 50E-3; // 50/VcalDAC										       
+      (*pix).vcal = (cal.fitParameter[0][col][row] + cal.fitParameter[1][col][row] * TMath::ErfInverse((*pix).raw / cal.fitParameter[3][col][row] - cal.fitParameter[2][col][row] )) * 49.105E-3 + 381.223E-3; // 49.105e/VcalDAC
     }
 
     // Weibull Calibration:
     else if(strcmp(cal.type.c_str(),"desy_weibull") == 0) {
-      (*pix).vcal = (std::pow( - std::log( 1.0 - Ared / ma9 ), 1.0/cal.fitParameter[4][col][row]) 
+      (*pix).vcal = (std::pow( - std::log( 1.0 - Ared / ma9 ), 1.0/cal.fitParameter[4][col][row])
 		     * cal.fitParameter[1][col][row] + cal.fitParameter[2][col][row] ) * keV;
     }
     // Decorrelated Weibull Calibration:
@@ -5790,7 +5812,7 @@ bool EUTelAnalysisCMSPixel::CalibratePixels(std::vector<CMSPixel::pixel> * pixel
     }
     // DESY TanH Calibration:
     else {
-      (*pix).vcal = (TMath::ATanH( Ared / ma9 ) 
+      (*pix).vcal = (TMath::ATanH( Ared / ma9 )
 		      * cal.fitParameter[1][col][row] + cal.fitParameter[2][col][row]) * keV; // [ke]
     }
   }
@@ -5802,7 +5824,7 @@ bool EUTelAnalysisCMSPixel::InitializeCalibration(std::string gainfilename, int 
 
   //FIXME initialize cal with 0?
 
-  streamlog_out(MESSAGE4) << "CMSPixel gainfile: " << gainfilename 
+  streamlog_out(MESSAGE4) << "CMSPixel gainfile: " << gainfilename
 			  << " of type " << CalibrationType << std::endl;
   std::ifstream gainFile(gainfilename.c_str());
 
@@ -5828,14 +5850,14 @@ bool EUTelAnalysisCMSPixel::InitializeCalibration(std::string gainfilename, int 
     gainFile.getline(string,500);
     gainFile.getline(string,500);
     gainFile.getline(string,500);
-      
+
     for (int icol = 0; icol < 52; icol++) {
 	for (int irow = 0; irow < 80; irow++) {
 	    gainFile >> cal.fitParameter[0][icol][irow] >> cal.fitParameter[1][icol][irow]
 		     >> cal.fitParameter[2][icol][irow] >> cal.fitParameter[3][icol][irow]
 		     >> string >> a >> b;
 	    i++;
-	  }	  
+	  }
       }
   }
   else if(strcmp(CalibrationType.c_str(),"desy_weibull") == 0) {
@@ -5871,12 +5893,12 @@ bool EUTelAnalysisCMSPixel::InitializeCalibration(std::string gainfilename, int 
     while( gainFile >> string ) {
       gainFile >> icol;
       gainFile >> irow;
-      
+
       gainFile >> am;//Amax
       gainFile >> ho;//horz offset
       gainFile >> ga;//gain [ADC/large Vcal]
       gainFile >> vo;//vert offset
-      
+
       cal.fitParameter[0][icol][irow] = am; // amax[icol][irow] = am*aa; // gain for Weib
       cal.fitParameter[1][icol][irow] = ga; // Gain[icol][irow] = ga; // width for Weib
       cal.fitParameter[2][icol][irow] = ho; // horz[icol][irow] = ho;
@@ -5886,12 +5908,12 @@ bool EUTelAnalysisCMSPixel::InitializeCalibration(std::string gainfilename, int 
       i++;
     }
   }
-  else { 
+  else {
     streamlog_out(ERROR) << "Selected calibration method " << CalibrationType << " not supported!" << std::endl;
     return false;
   }
 
-  streamlog_out(MESSAGE2) << "Read calibration parameters for " << i-1 << " pixels, type " 
+  streamlog_out(MESSAGE2) << "Read calibration parameters for " << i-1 << " pixels, type "
 			  << CalibrationType << std::endl;
 
   // Store calibration type and chip id:
