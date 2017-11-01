@@ -329,6 +329,7 @@ EUTelMilleGBL::EUTelMilleGBL(): Processor("EUTelMilleGBL") {
 
   registerOptionalParameter("FixedPlanes","Fix sensor planes in the fit according to their sensor ids.",_FixedPlanes_sensorIDs ,std::vector<int>());
 
+  registerOptionalParameter("TelescopePlanes", "Plane ids that are used for t/driplet finding", _telescopePlanes, std::vector<int>({0,1,2,3,4,5}));
 
   registerOptionalParameter("MaxTrackCandidatesTotal","Maximal number of track candidates (Total).",_maxTrackCandidatesTotal, static_cast <int> (10000000));
   registerOptionalParameter("MaxTrackCandidates","Maximal number of track candidates.",_maxTrackCandidates, static_cast <int> (2000));
@@ -463,6 +464,7 @@ void EUTelMilleGBL::init() {
 
   _planePosition = new double[_nTelPlanes]; // z pos
 
+  streamlog_out(MESSAGE2) << "Layer position obtained from GEAR file" << endl;
   for(int i = 0; i < _nTelPlanes; i++) {
 
     //_planeID[i]=_siPlanesLayerLayout->getID(i);
@@ -470,8 +472,9 @@ void EUTelMilleGBL::init() {
     //_planeThickness[i]=_siPlanesLayerLayout->getLayerThickness(i);
     //_planeX0[i]=_siPlanesLayerLayout->getLayerRadLength(i);
     //_planeResolution[i] = _siPlanesLayerLayout->getSensitiveResolution(i);
+    streamlog_out(MESSAGE2) <<_planePosition[i] << endl;
   }
-
+  
   streamlog_out(MESSAGE4) << "assumed beam energy " << _eBeam << " GeV" <<  endl;
   //lets guess the number of planes
   if( _inputMode == 0 || _inputMode == 2 ) { // we use inputMode 0
@@ -526,9 +529,28 @@ void EUTelMilleGBL::init() {
     exit(-1);
   }
 
+  //streamlog_out(MESSAGE2) << "Telescope plane ids and z position" << endl;
+  for(size_t iPlane=0; iPlane<_siPlanesLayerLayout->getNLayers(); ++iPlane) 
+  {
+	  if( std::find(_telescopePlanes.begin(), _telescopePlanes.end(), _siPlanesLayerLayout->getID(iPlane)) 
+	      != _telescopePlanes.end() ) 
+	  {
+		  _telescopeIDMap.push_back( make_pair(_siPlanesLayerLayout->getID(iPlane),
+						       _siPlanesLayerLayout->getLayerPositionZ(iPlane)) );
+	  }  
+  }
+
+  streamlog_out(MESSAGE2) << "Telescope plane ids and z position" << endl;
+      for(const auto& iz : _telescopeIDMap)
+      {
+	      streamlog_out(MESSAGE2) << "id: " << iz.first 
+				      << " - z: " << iz.second
+ 				      << endl;
+      }
+
+
   // an associative map for getting also the sensorID ordered
   map< double, int > sensorIDMap;
-
   //lets create an array with the z positions of each layer
   for(  int iPlane = 0 ; iPlane < _siPlanesLayerLayout->getNLayers(); iPlane++ ) {
     _siPlaneZPosition.push_back(_siPlanesLayerLayout->getLayerPositionZ(iPlane));
@@ -581,6 +603,14 @@ void EUTelMilleGBL::init() {
       ++counter;
     }
   }
+  if (_excludePlanes.size() != 0) {
+	  streamlog_out( MESSAGE2 ) << "Excluded sensor indices ((n+1)th sensor along z):"
+				    << endl;
+	  for( const auto& id : _excludePlanes )
+	  {
+		  streamlog_out( MESSAGE2 ) << id << endl;
+	  }
+  }
 
   // strip from the map the sensor id already sorted.
   map< double, int >::iterator iter = sensorIDMap.begin();
@@ -601,6 +631,13 @@ void EUTelMilleGBL::init() {
 
     ++iter;
     ++counter;
+  }
+  
+  streamlog_out( MESSAGE2 ) << "Z ordered Sensor IDs without excluded planes: "
+			    << endl;
+  for( const auto& id : _orderedSensorID_wo_excluded )
+  {
+	  streamlog_out( MESSAGE2 ) << id << endl;
   }
 
   //consistency
@@ -761,7 +798,8 @@ void EUTelMilleGBL::processEvent( LCEvent * event ) {
   }
 
   if( _nMilleTracks > _maxTrackCandidatesTotal ) {
-    throw StopProcessingException(this);
+	  streamlog_out( MESSAGE4 ) << "Max. number of events processed. Terminating Marlin (results in an error)" << endl;
+	  throw StopProcessingException(this);
   }
 
   // fill resolution arrays
@@ -776,31 +814,43 @@ void EUTelMilleGBL::processEvent( LCEvent * event ) {
     streamlog_out( DEBUG2 ) << "EORE found: nothing else to do." << endl;
     return;
   }
-
-  std::vector<std::vector<EUTelMilleGBL::HitsInPlane> > _hitsArray(_nPlanes - _nExcludePlanes, std::vector<EUTelMilleGBL::HitsInPlane>() );
+  
   std::vector<int> indexconverter (_nPlanes,-1);
-
-  //  if( _nExcludePlanes > 0 )
-  {
-    int icounter = 0;
-    for( int i = 0; i < _nPlanes; i++ ) {
-      int excluded = 0; //0 - not excluded, 1 - excluded
-      if( _nExcludePlanes > 0 ) {
-	for( int helphelp = 0; helphelp < _nExcludePlanes; helphelp++ ) {
-	  if( i == _excludePlanes[helphelp] ) {
-	    excluded = 1;
-	    break;//leave the for loop
+  /* Daniel
+  std::vector<std::vector<EUTelMilleGBL::HitsInPlane> > _hitsArray(_nPlanes - _nExcludePlanes, std::vector<EUTelMilleGBL::HitsInPlane>() );
+  
+  int icounter = 0;
+  for( int i = 0; i < _nPlanes; i++ ) {
+	  int excluded = 0; //0 - not excluded, 1 - excluded
+	  if( _nExcludePlanes > 0 ) {
+		  for( int helphelp = 0; helphelp < _nExcludePlanes; helphelp++ ) {
+			  if( i == _excludePlanes[helphelp] ) {
+				  excluded = 1;
+				  break;//leave the for loop
+			  }
+		  }
 	  }
-	}
-      }
-      if( excluded == 1 )
-	indexconverter[i] = -1;
-      else {
-	indexconverter[i] = icounter;
-	icounter++;
-      }
-    }
+	  if( excluded == 1 )
+		  indexconverter[i] = -1;
+	  else {
+		  indexconverter[i] = icounter;
+		  icounter++;
+	  }
+
   }
+
+  if (_iEvt == 0) {
+	  streamlog_out( MESSAGE2 ) << "Index converter content: " << endl;
+	  for( const auto &id : indexconverter)
+	  {
+		  streamlog_out( MESSAGE2 ) << id << endl;
+		  }
+  }
+  */
+
+  // 6 telescope planes
+  std::vector<std::vector<EUTelMilleGBL::HitsInPlane> > _hitsArray(_telescopePlanes.size(), std::vector<EUTelMilleGBL::HitsInPlane>() );
+  
 
   if( _inputMode != 1 && _inputMode != 3 ) // we use _inputMode 0
 
@@ -816,6 +866,7 @@ void EUTelMilleGBL::processEvent( LCEvent * event ) {
 	//			  << " in run " << event->getRunNumber() << endl;
 	throw SkipEventException(this);
       }
+      int layerID = -1;
       int layerIndex = -1;
       HitsInPlane hitsInPlane;
 
@@ -830,7 +881,6 @@ void EUTelMilleGBL::processEvent( LCEvent * event ) {
 
 	for( int iHit = 0; iHit < collection->getNumberOfElements(); iHit++ ) {
 
-
 	  TrackerHitImpl * hit = static_cast<TrackerHitImpl*> ( collection->getElementAt(iHit) );
 
 	  LCObjectVec clusterVector = hit->getRawHits();
@@ -838,17 +888,29 @@ void EUTelMilleGBL::processEvent( LCEvent * event ) {
 	  double minDistance =  numeric_limits< double >::max();
 	  double * hitPosition = const_cast<double * > (hit->getPosition());
 
-	  for(  int i = 0; i < (int)_siPlaneZPosition.size(); i++ ) {
+	  /*
+	  for(  int i = 0; i < static_cast<int>(_siPlaneZPosition.size()); i++ ) {
 	    double distance = std::abs( hitPosition[2] - _siPlaneZPosition[i] );
 	    if( distance < minDistance ) {
 	      minDistance = distance;
 	      layerIndex = i;
 	    }
 	  }
+	  */
+
+	  for(const auto& IDz : _telescopeIDMap)
+	  {
+		  double distance = std::abs( hitPosition[2] - IDz.second );
+		  if (distance < minDistance) {
+			  minDistance = distance;
+			  layerID = IDz.first;
+		  }
+	  }
+
 	  if( minDistance > 30 /* mm */ ) {
 	    // advise the user that the guessing wasn't successful
-	    streamlog_out( WARNING3 ) << "A hit was found " << minDistance << " mm far from the nearest plane\n"
-	      "Please check the consistency of the data with the GEAR file" << endl;
+		  //streamlog_out( WARNING3 ) << "A hit was found " << minDistance << " mm far from the nearest plane\n"
+		  //"Please check the consistency of the data with the GEAR file" << endl;
 	  }
 
 	  // Getting positions of the hits.
@@ -864,9 +926,15 @@ void EUTelMilleGBL::processEvent( LCEvent * event ) {
 
 	  //printf("hit %5d of %5d , at %-8.3f %-8.3f %-8.3f, %5d %5d \n", iHit , collection->getNumberOfElements(), hitsInPlane.measuredX*1E-3, hitsInPlane.measuredY*1E-3, hitsInPlane.measuredZ*1E-3, indexconverter[layerIndex], layerIndex );
 
+	  /* Daniel
 	  if( indexconverter[layerIndex] != -1 )
 	    _hitsArray[indexconverter[layerIndex]].push_back( hitsInPlane );
-
+	  */
+	  // We still need a indexconverter -.-
+	  if (layerID != -1) {
+		  _hitsArray[layerID].push_back( hitsInPlane );
+	  }		  
+	  
 	} // end loop over all hits in collection
 
       }//mode 0
@@ -914,21 +982,24 @@ void EUTelMilleGBL::processEvent( LCEvent * event ) {
     }//loop over hits
 
   /*
-     streamlog_out( MESSAGE2 ) << "hits per plane: ";
-     for( size_t i = 0; i < _hitsArray.size(); i++ )
-     streamlog_out( MESSAGE2 ) << _hitsArray[i].size() << "  ";
-     streamlog_out( MESSAGE2 ) << endl;
-     */
+  streamlog_out( MESSAGE2 ) << "hits per plane: ";
+  for( size_t i = 0; i < _hitsArray.size(); i++ )
+  {
+	  streamlog_out( MESSAGE2 ) << _hitsArray[i].size() << "  ";
+	  streamlog_out( MESSAGE2 ) << endl;
+  }
+  */
   // mode 1 or 3: tracks are read in
 
   // DP: correlate telescope hits from different planes
 
-  int iA = indexconverter[0]; // plane 0
+  //int iA = indexconverter[0]; // plane 0
+  int iA = 0;
 
   if( iA >= 0 ) { // not excluded
     for( size_t jA = 0; jA < _hitsArray[iA].size(); jA++ ) { // hits in plane
 
-      int iB = indexconverter[1]; // plane 1
+      int iB = 1; // plane 1
       if( iB >= 0 ) { // not excluded
 	for( size_t jB = 0; jB < _hitsArray[iB].size(); jB++ ) {
 	  double dx = _hitsArray[iB][jB].measuredX - _hitsArray[iA][jA].measuredX;
@@ -938,7 +1009,7 @@ void EUTelMilleGBL::processEvent( LCEvent * event ) {
 	}//loop hits jB
       }//iB valid
 
-      iB = indexconverter[2]; // plane 2
+      iB = 2; // plane 2
       if( iB >= 0 ) { // not excluded
 	for( size_t jB = 0; jB < _hitsArray[iB].size(); jB++ ) {
 	  double dx = _hitsArray[iB][jB].measuredX - _hitsArray[iA][jA].measuredX;
@@ -948,7 +1019,7 @@ void EUTelMilleGBL::processEvent( LCEvent * event ) {
 	}//loop hits jB
       }//iB valid
 
-      iB = indexconverter[3]; // plane 3
+      iB = 3; // plane 3
       if( iB >= 0 ) { // not excluded
 	for( size_t jB = 0; jB < _hitsArray[iB].size(); jB++ ) {
 	  double dx = _hitsArray[iB][jB].measuredX - _hitsArray[iA][jA].measuredX;
@@ -958,7 +1029,7 @@ void EUTelMilleGBL::processEvent( LCEvent * event ) {
 	}//loop hits jB
       }//iB valid
 
-      iB = indexconverter[4]; // plane 4
+      iB = 4; // plane 4
       if( iB >= 0 ) { // not excluded
 	for( size_t jB = 0; jB < _hitsArray[iB].size(); jB++ ) {
 	  double dx = _hitsArray[iB][jB].measuredX - _hitsArray[iA][jA].measuredX;
@@ -968,7 +1039,7 @@ void EUTelMilleGBL::processEvent( LCEvent * event ) {
 	}//loop hits jB
       }//iB valid
 
-      iB = indexconverter[5]; // plane 5
+      iB = 5; // plane 5
       if( iB >= 0 ) { // not excluded
 	for( size_t jB = 0; jB < _hitsArray[iB].size(); jB++ ) {
 	  double dx = _hitsArray[iB][jB].measuredX - _hitsArray[iA][jA].measuredX;
@@ -988,14 +1059,33 @@ void EUTelMilleGBL::processEvent( LCEvent * event ) {
   // j is hit index
   // k is triplet index
 
-  int i0 = indexconverter[0]; // plane 0
-  int i1 = indexconverter[1]; // plane 1
-  int i2 = indexconverter[2]; // plane 2
+  int i0 = 0; // plane 0
+  int i1 = 1; // plane 1
+  int i2 = 2; // plane 2
 
-  int i3 = indexconverter[3]; // plane 3
-  int i4 = indexconverter[4]; // plane 4
-  int i5 = indexconverter[5]; // plane 5
+  int i3 = 3; // plane 3
+  int i4 = 4; // plane 4
+  int i5 = 5; // plane 5
 
+  
+  if( _iEvt == 0 ) {
+	  streamlog_out( MESSAGE2 ) << "Sensor indices used for t/driplet finding: " 
+				    << endl;
+	  for (int i=0; i<6; ++i)
+	  {
+		  streamlog_out(MESSAGE2) << indexconverter[i] << endl;
+	  }
+  }
+  
+  if( _iEvt == 0 ) {
+	  streamlog_out( MESSAGE2 ) << "Size of hitarray: " 
+				    << endl;
+	  for (const auto& hits : _hitsArray)
+	  {
+		  streamlog_out(MESSAGE2) << hits.size() << endl;
+	  }
+  }
+  
 
   if( i0*i1*i2*i3*i4*i5 >= 0 ) { // not excluded
 

@@ -68,7 +68,7 @@ EUTelPedeGEAR::EUTelPedeGEAR() : Processor("EUTelPedeGEAR") {
   registerOptionalParameter("NewGEARSuffix",
                             "Suffix for the new GEAR file, set to empty string "
                             "(this is not default!) to overwrite old GEAR file",
-                            _GEARFileSuffix, std::string("_aligned"));
+                            _GEARFileSuffix, std::string(""));
 
   registerOptionalParameter("OffsetScaleFactor",
                             "Offset scale factor.",
@@ -100,6 +100,8 @@ void EUTelPedeGEAR::init() {
 	_alignMode = Utility::alignMode::XYShifts;
   } else if( _alignModeString.compare("XYShiftsAllRot") == 0 ) {
 	_alignMode = Utility::alignMode::XYShiftsAllRot;
+  } else if( _alignModeString.compare("XYZShiftsRotZ") == 0 ) {
+	 _alignMode = Utility::alignMode::XYZShiftsRotZ;
   } else {
 	streamlog_out(ERROR) << "The chosen AlignMode: '" << _alignModeString << "' is invalid. Please correct your steering template and retry!" << std::endl;
 	throw InvalidParameterException("AlignMode");
@@ -120,6 +122,12 @@ void EUTelPedeGEAR::init() {
     int sensorID = *it;
     sensorIDMap.insert(
         std::make_pair(geo::gGeometry().siPlaneZPosition(sensorID), sensorID));
+  }
+
+  streamlog_out(MESSAGE2) << "Plane ids and their corresponding z position: " << std::endl;
+  for(const auto& idZ : sensorIDMap) 
+  {
+	  streamlog_out(MESSAGE2) << "id: " << idZ.second << " z: " << idZ.first << std::endl;
   }
 
   // the user is giving sensor ids for the planes to be excluded. this
@@ -354,12 +362,15 @@ void EUTelPedeGEAR::end() {
       std::getline(millepede, line);
 
       int counter = 0;
+      // TODO: adapt to telescopePlane vector
       int sensorID = _orderedSensorID.at(counter);
 
+      // Loop over all global parameters (alignment)
       while (!millepede.eof()) {
         bool goodLine = true;
         unsigned int numpars = 0;
 
+	// TODO add additional align modes
         if (_alignMode != Utility::alignMode::XYShiftsAllRot) {
           numpars = 3;
         } else {
