@@ -363,7 +363,14 @@ void EUTelPedeGEAR::end() {
 
       int counter = 0;
       // TODO: adapt to telescopePlane vector
-      int sensorID = _orderedSensorID.at(counter);
+      int sensorID = _orderedSensorID_wo_excluded.at(counter);
+      
+      streamlog_out(MESSAGE5) << "Sensor IDs: " << std::endl;
+      for(const auto& id : _orderedSensorID_wo_excluded) 
+      {
+	      streamlog_out(MESSAGE5) << sensorID << std::endl;
+      }
+
 
       // Loop over all global parameters (alignment)
       while (!millepede.eof()) {
@@ -465,7 +472,7 @@ void EUTelPedeGEAR::end() {
 
         // right place to add the constant to the collection
         if (goodLine) {
-          sensorID = _orderedSensorID.at(counter);
+          sensorID = _orderedSensorID_wo_excluded.at(counter);
           std::cout << "Alignment on sensor " << sensorID
                     << " determined to be: xOff: " << xOff << ", yOff: " << yOff
                     << ", zOff: " << zOff << ", alpha: " << alpha
