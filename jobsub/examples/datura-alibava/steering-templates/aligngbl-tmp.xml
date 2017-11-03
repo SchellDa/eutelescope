@@ -28,7 +28,7 @@
       <parameter name="MaxRecordNumber" value="@MaxRecordNumber@"/>
       <parameter name="SkipNEvents" value="0"/>
       <parameter name="SupressCheck" value="false"/>
-      <parameter name="Verbosity" value="MESSAGE4"/>
+      <parameter name="Verbosity" value="@Verbosity@"/>
    </global>
 
  <processor name="MyAIDAProcessor" type="AIDAProcessor">
@@ -61,7 +61,7 @@
 		XYShiftsRotZ - shifts in the X and Y directions and a rotation around the Z axis,
 		XYShifts - only shifts in the X and Y directions
 		XYShiftsAllRot - shifts in the X,Y and Z directions and rotations around all three axis-->
-  <parameter name="AilgnMode" type="string"> @AlignMode@ </parameter>
+  <parameter name="AlignMode" type="string"> @AlignMode@ </parameter>
   <!--Exclude planes from fit according to their sensor ids.-->
   <parameter name="ExcludePlanes" type="IntVec"> @ExcludePlanes@ </parameter>
   <!--Fix sensor planes in the fit according to their sensor ids.-->
@@ -69,13 +69,13 @@
   <!--Suffix for the new GEAR file, set to empty string (this is not default!) to overwrite old GEAR file-->
   <parameter name="NewGEARSuffix" type="string"> @GEARSuffix@ </parameter>
   <!--Offset scale factor.-->
-  <!--parameter name="OffsetScaleFactor" type="int"> 1 </parameter-->
+  <parameter name="OffsetScaleFactor" type="int"> 1 </parameter>
   <!--Name of the steering file for the pede program.-->
   <parameter name="PedeSteerfileName" type="string"> @PedeSteerFile@ </parameter>
   <!--Apply the obtained rotation to the preexisting offset vector or not..-->
   <parameter name="RotateOffsetVec" type="bool"> true </parameter>
   <!--verbosity level of this processor ("DEBUG0-4,MESSAGE0-4,WARNING0-4,ERROR0-4,SILENT")-->
-  <!--parameter name="Verbosity" type="string">DEBUG </parameter-->
+  <!--parameter name="Verbosity" type="string">DEBUG0 </parameter-->
 </processor>
 
  <processor name="MyEUTelMilleGBL" type="EUTelMilleGBL">
@@ -120,7 +120,7 @@
 3 - Mixture of a track collection from the telescope and hit collections for the DUT (only one DUT layer can be used unfortunately)-->
   <parameter name="InputMode" type="int" value="0"/>
   <!--Maximal number of track candidates.-->
-  <!--parameter name="MaxTrackCandidates" type="int" value="@AlignTrackCandidates@"/-->
+  <!--parameter name="MaxTrackCandidates" type="int" value=""/-->
   <!--Maximal number of track candidates (Total).-->
   <parameter name="MaxTrackCandidatesTotal" type="int" value="@AlignTrackCandidatesTotal@"/>
   <!--Remove Mimosa26 clusters with a charge (i.e. number of fired pixels in cluster) below or equal to this value-->
@@ -149,9 +149,9 @@
   <!--Z resolution parameter for each plane. Note: these numbers are ordered according to the z position of the sensors and NOT according to the sensor id.-->
   <!--parameter name="ResolutionZ" type="FloatVec"> 1 1 1 1 1 1 </parameter-->
   <!--Execute the pede program using the generated steering file.-->
-  <parameter name="RunPede" type="int" value="1"/>
+  <parameter name="RunPede" type="int" value="0"/>
   <!--Resolution of the telescope for Millepede (sigma_x=sigma_y.-->
-  <parameter name="TelescopeResolution" type="float" value="7"/>
+  <parameter name="TelescopeResolution" type="float" value="8"/>
   <!--Resolution assumed for the sensors in test mode.-->
   <!--parameter name="TestModeSensorResolution" type="float" value="3"/-->
   <!--Z positions of the sensors in test mode.-->
