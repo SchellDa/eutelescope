@@ -6,8 +6,8 @@
  * header with author names in all development based on this file.
  *
  */
-#ifndef EUTELTRACKERDATAINTERFACER_H
-#define EUTELTRACKERDATAINTERFACER_H
+#ifndef EUTELTRACKERDATAINTERFACER_HCC
+#define EUTELTRACKERDATAINTERFACER_HCC
 
 // personal includes ".h"
 #include "EUTELESCOPE.h"
@@ -55,8 +55,8 @@ namespace eutelescope {
      *carefully track those
      *  operations and invalidate this vector.
      */
-    mutable std::vector<std::reference_wrapper<EUTelBaseSparsePixel const>> 
-	_refVec;
+    mutable std::vector<std::reference_wrapper<EUTelBaseSparsePixel const>>
+        _refVec;
     //! Flag to store the validity state of the _refVec
     mutable bool _refVecValid = false;
     //! Method to validate _refVec
@@ -73,14 +73,13 @@ namespace eutelescope {
     virtual ~EUTelTrackerDataInterfacer() = default;
 
     //! Returns a const & to the underlying pixel vector
-    /*
     std::vector<std::reference_wrapper<EUTelBaseSparsePixel const>> const &
     getPixels() const {
       if (!_refVecValid)
         this->validateRefVec();
       return _refVec;
     }
-    */
+
     //! Push back a pixel, very similar to STL containers
     /*! Note that the function takes a EUTelBaseSparsePixel reference, since
      *EUTelBaseSparsePixel
@@ -92,36 +91,28 @@ namespace eutelescope {
      *pixel) will not have
      *	this cast overhead (but is not as generic).
      */
- 
-    //virtual EUTelBaseSparsePixel* getSparsePixelAt(unsigned int index, EUTelBaseSparsePixel* pixel) const = 0;
-   
-    virtual void push_back(EUTelBaseSparsePixel const &pixel) = 0; // throws std::bad_cast
-    
+    virtual void
+    push_back(EUTelBaseSparsePixel const &pixel) = 0; // throws std::bad_cast
+
     //! begin() for EUTelTrackerDataInterfacer
     /*! Loops over the _refVec, note that this function is not virtual. The
      *return type of this is a
      *	std::const_iterator<std::reference_wrapper<EUTelBaseSparsePixel const>>>
      */
-    /*
     auto begin() const -> decltype(this->_refVec.cbegin()) {
       if (!_refVecValid)
         this->validateRefVec();
       return _refVec.cbegin();
     }
-    */
+
     //! end() for EUTelTrackerDataInterfacer
     /*! See comments in begin()
      */
-    
-    /*
-    auto end() const -> decltype(this->_refVec.cend()); 
-    
-    {
+    auto end() const -> decltype(this->_refVec.cend()) {
       if (!_refVecValid)
         this->validateRefVec();
       return _refVec.cend();
     }
-    */
 
     //! at() behaving very similar to STL container's::at()
     /*! Contrary to operator[], at() has a range check and might throw an
@@ -132,46 +123,36 @@ namespace eutelescope {
      *return a PixelType const &
      *	which is allowed as C++ supports covariance in return types
      */
-    virtual auto at(size_t i) const -> decltype(_refVec.at(i).get()); 
-    /*
-    { // throws std::out_of_range
+    virtual auto at(size_t i) const
+        -> decltype(_refVec.at(i).get()) { // throws std::out_of_range
       if (!_refVecValid)
         this->validateRefVec();
       return _refVec.at(i).get();
     }
-    */
 
     //! operator[] behaving very similar to STL container's::operator[]
     /*! See comments in at()
      */
-    virtual auto operator[](size_t i) const -> decltype(_refVec.operator[](i).get()); 
-    /*
-    {
+    virtual auto operator[](size_t i) const
+        -> decltype(_refVec.operator[](i).get()) {
       if (!_refVecValid)
         this->validateRefVec();
       return _refVec.operator[](i).get();
     }
-    */
 
     //! Get the number of sparse pixels in the collection
-    virtual auto size() const -> decltype(_refVec.size()); 
-    /*
-    {
+    virtual auto size() const -> decltype(_refVec.size()) {
       if (!_refVecValid)
         this->validateRefVec();
       return _refVec.size();
     }
-    */
 
     //! Check if no pixels are present in the collection
-    virtual auto empty() const -> decltype(_refVec.empty());
-    /*
-    {
+    virtual auto empty() const -> decltype(_refVec.empty()) {
       if (!_refVecValid)
         this->validateRefVec();
       return _refVec.empty();
     }
-    */
   };
 } // namespace
 #endif
