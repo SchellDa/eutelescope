@@ -570,7 +570,7 @@ void EUTelPreAlign::end() {
                     (MarlinStringParams->getStringVal("GearXMLFile")).size() -
                         4);
     streamlog_out(MESSAGE5) << "Writing updated GEAR file with filename: "
-                            << outputFilename + "_pre.xml" << std::endl;
+                            << outputFilename + _GEARFileSuffix << std::endl;
     geo::gGeometry().writeGEARFile(outputFilename + _GEARFileSuffix + ".xml");
 
     // in case we don't write out the collection, we need to delete ourself as
