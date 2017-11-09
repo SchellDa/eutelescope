@@ -386,7 +386,8 @@ namespace eutelescope {
     //set by the user.
 
     std::vector<int> _telescopePlanes;
-	  std::vector<std::pair<int, double> > _telescopeIDMap;	  
+    std::vector<std::pair<int, double> > _telescopeIDMap;	  
+    std::vector<std::pair<int, double> > _planeIDMap;
 
     double _eBeam; // DP
     double _triCut;

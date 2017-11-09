@@ -529,24 +529,50 @@ void EUTelMilleGBL::init() {
     exit(-1);
   }
 
-  //streamlog_out(MESSAGE2) << "Telescope plane ids and z position" << endl;
   for(size_t iPlane=0; iPlane<_siPlanesLayerLayout->getNLayers(); ++iPlane) 
   {
+	  // Fill telescope map
 	  if( std::find(_telescopePlanes.begin(), _telescopePlanes.end(), _siPlanesLayerLayout->getID(iPlane)) 
 	      != _telescopePlanes.end() ) 
 	  {
 		  _telescopeIDMap.push_back( make_pair(_siPlanesLayerLayout->getID(iPlane),
 						       _siPlanesLayerLayout->getLayerPositionZ(iPlane)) );
 	  }  
+
+	  // Fill _planeIDmap if ID is not excluded
+	  if(std::find(_excludePlanes.begin(), _excludePlanes.end(), _siPlanesLayerLayout->getID(iPlane)) 
+	      == _excludePlanes.end() )
+	  {
+		  _planeIDMap.push_back( make_pair(_siPlanesLayerLayout->getID(iPlane),
+						   _siPlanesLayerLayout->getLayerPositionZ(iPlane)) );
+	  }
   }
 
+  // Lets sort the planes by their z position using a lambda expression
+  // as function for std::sort
+  // In c++14 lambdas can have parameters of type auto which would make
+  // this expression even more convinient:
+  // just replace 'const std::pair<int, double>&' by 'auto&'
+  std::sort(_planeIDMap.begin(), _planeIDMap.end(), [](const std::pair<int, double>& left, 
+						       const std::pair<int, double>& right) {
+		    return left.second < right.second;
+	    }
+	  );
+  
   streamlog_out(MESSAGE2) << "Telescope plane ids and z position" << endl;
-      for(const auto& iz : _telescopeIDMap)
-      {
-	      streamlog_out(MESSAGE2) << "id: " << iz.first 
-				      << " - z: " << iz.second
- 				      << endl;
-      }
+  for(const auto& iz : _telescopeIDMap)
+  {
+	  streamlog_out(MESSAGE2) << "id: " << iz.first 
+				  << " - z: " << iz.second
+				  << endl;
+  }
+  streamlog_out(MESSAGE2) << "Ordered plane ids and z position" << endl;
+  for(const auto& iz : _planeIDMap)
+  {
+	  streamlog_out(MESSAGE2) << "id: " << iz.first 
+				  << " - z: " << iz.second
+				  << endl;
+  }
 
 
   // an associative map for getting also the sensorID ordered
@@ -1067,7 +1093,7 @@ void EUTelMilleGBL::processEvent( LCEvent * event ) {
   int i4 = 4; // plane 4
   int i5 = 5; // plane 5
 
-  
+  /*
   if( _iEvt == 0 ) {
 	  streamlog_out( MESSAGE2 ) << "Sensor indices used for t/driplet finding: " 
 				    << endl;
@@ -1076,7 +1102,6 @@ void EUTelMilleGBL::processEvent( LCEvent * event ) {
 		  streamlog_out(MESSAGE2) << indexconverter[i] << endl;
 	  }
   }
-  
   if( _iEvt == 0 ) {
 	  streamlog_out( MESSAGE2 ) << "Size of hitarray: " 
 				    << endl;
@@ -1085,7 +1110,7 @@ void EUTelMilleGBL::processEvent( LCEvent * event ) {
 		  streamlog_out(MESSAGE2) << hits.size() << endl;
 	  }
   }
-  
+  */
 
   if( i0*i1*i2*i3*i4*i5 >= 0 ) { // not excluded
 
