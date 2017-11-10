@@ -74,7 +74,11 @@ namespace eutelescope {
 
     //! Returns a const & to the underlying pixel vector
     std::vector<std::reference_wrapper<EUTelBaseSparsePixel const>> const &
-	    getPixels() const ;
+	    getPixels() const {
+	    if (!_refVecValid)
+		    this->validateRefVec();
+	    return _refVec;
+    }
 
     //! Push back a pixel, very similar to STL containers
     /*! Note that the function takes a EUTelBaseSparsePixel reference, since
@@ -95,12 +99,21 @@ namespace eutelescope {
      *return type of this is a
      *	std::const_iterator<std::reference_wrapper<EUTelBaseSparsePixel const>>>
      */
-    auto begin() const -> decltype(_refVec.cbegin()); 
+    auto begin() const -> decltype(this->_refVec.cbegin()) {
+	    if (!_refVecValid)
+		    this->validateRefVec();
+	    return _refVec.cbegin();
+    }
 
     //! end() for EUTelTrackerDataInterfacer
     /*! See comments in begin()
      */
-    auto end() const -> decltype(_refVec.cend());
+    auto end() const -> decltype(_refVec.cend()) {
+	    if (!_refVecValid)
+		    this->validateRefVec();
+	    return _refVec.cend();
+
+    }
 
     //! at() behaving very similar to STL container's::at()
     /*! Contrary to operator[], at() has a range check and might throw an

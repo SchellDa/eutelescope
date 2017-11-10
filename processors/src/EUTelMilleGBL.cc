@@ -900,7 +900,6 @@ void EUTelMilleGBL::processEvent( LCEvent * event ) {
       if( _inputMode == 0 ) {
 
 	// loop over all hits in collection:
-
         if(_printEventCounter < 100) streamlog_out(DEBUG2) << "Event " << event->getEventNumber() << " contains " 
 	  << collection->getNumberOfElements() << " hits" << endl;
         nAllHitHisto->fill(collection->getNumberOfElements());
