@@ -19,7 +19,7 @@
       <processor name="AIDA"/>
       <processor name="MyAlibavaDataMerger"/>
       <processor name="MyEUTelUtilityPrintEventNumber"/>
-      <processor name="Save"/>
+      <!--processor name="Save"/-->
    </execute>
 
    <global>
@@ -57,6 +57,7 @@
    <!--Name of the ROOT output file-->
    <parameter name="AlibavaDataFile" type="string"> @AlibavaFile@ </parameter>
    <parameter name="RootOutputFilename" type="string"> @RootPath@/@OutputFile@ </parameter>
+   <parameter name="SeedCut" type="int"> @SeedCut@ </parameter>
  </processor>
  
 <processor name="MyEUTelUtilityPrintEventNumber" type="EUTelUtilityPrintEventNumber">
