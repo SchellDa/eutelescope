@@ -99,22 +99,24 @@ namespace eutelescope {
      *return type of this is a
      *	std::const_iterator<std::reference_wrapper<EUTelBaseSparsePixel const>>>
      */
-    auto begin() const -> decltype(this->_refVec.cbegin()) {
+	/*
+	auto begin() const -> decltype(this->_refVec.cbegin()) {
 	    if (!_refVecValid)
 		    this->validateRefVec();
 	    return _refVec.cbegin();
     }
-
+	*/
     //! end() for EUTelTrackerDataInterfacer
     /*! See comments in begin()
      */
+/*
     auto end() const -> decltype(_refVec.cend()) {
 	    if (!_refVecValid)
 		    this->validateRefVec();
 	    return _refVec.cend();
 
     }
-
+*/
     //! at() behaving very similar to STL container's::at()
     /*! Contrary to operator[], at() has a range check and might throw an
      *exception. This function is

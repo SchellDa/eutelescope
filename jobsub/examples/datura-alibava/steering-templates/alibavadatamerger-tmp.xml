@@ -56,8 +56,18 @@
    <parameter name="includedSensorIds" type="IntVec"> @SensorIDs@ </parameter>
    <!--Name of the ROOT output file-->
    <parameter name="AlibavaDataFile" type="string"> @AlibavaFile@ </parameter>
+   <parameter name="AlibavaPedestalFile" type="string"> @AlibavaPedestalFile@ </parameter>
+   <parameter name="AlibavaCalibFile" type="string"> @AlibavaCalibFile@ </parameter>
    <parameter name="RootOutputFilename" type="string"> @RootPath@/@OutputFile@ </parameter>
-   <parameter name="SeedCut" type="int"> @SeedCut@ </parameter>
+   <parameter name="Filename" type="string"> @RootPath@/@OutputFile@ </parameter>
+   <parameter name="SeedCut" type="float"> @SeedCut@ </parameter>
+   <parameter name="NeighborCut" type="float"> 2 </parameter>
+   <parameter name="MinNoise" type="float"> 1.5 </parameter>
+   <parameter name="MaxNoise" type="float"> 7.5 </parameter>
+   <parameter name="NPedestalEvents" type="int"> 5000 </parameter>
+   <parameter name="PedestalStartEvent" type="int"> 1000 </parameter>
+   <parameter name="Polarity" type="int"> -1 </parameter>
+
  </processor>
  
 <processor name="MyEUTelUtilityPrintEventNumber" type="EUTelUtilityPrintEventNumber">
