@@ -67,7 +67,7 @@
    <parameter name="NPedestalEvents" type="int"> 5000 </parameter>
    <parameter name="PedestalStartEvent" type="int"> 1000 </parameter>
    <parameter name="Polarity" type="int"> -1 </parameter>
-
+   <parameter name="MaskFile" type="string"> @MaskFile@ </parameter>
  </processor>
  
 <processor name="MyEUTelUtilityPrintEventNumber" type="EUTelUtilityPrintEventNumber">
